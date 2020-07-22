@@ -3,15 +3,6 @@
 
 Simulate a variety of existing caching policies by replaying request traces, and use this framework as a basis to experiment with new ones.
 
-The webcachesim simulator was built for the [AdaptSize project](https://github.com/dasebe/AdaptSize), see [References](#references) for more information.
-
-
-## Example simulation results
-
-We replay production traffic from a CDN server operated by the [Wikimedia Foundation](https://wikimediafoundation.org/wiki/Home), and consider various modern caching policies.
-
-<img src="https://cloud.githubusercontent.com/assets/9959772/22966302/de4de664-f361-11e6-9345-854bffa2005c.png" width=500px />
-
 ## Compiling webcachesim
 
 You will need a compiler that supports C++11, e.g., GCC 4.8.1 upwards (with -std=c++11). Older compilers that partially support C++11, e.g., GCC 4.4, can compile (with -std=c++0x).
@@ -75,37 +66,6 @@ example usage:
 
     ./webcachesim test.tr FIFO 1000
     
-#### GDS
-
-does: greedy dual size eviction
-
-params: none
-
-example usage:
-
-    ./webcachesim test.tr GDS 1000
-    
-#### GDSF
-
-does: greedy dual-size frequency eviction
-
-params: none
-
-example usage:
-
-    ./webcachesim test.tr GDSF 1000
-    
-#### LFU-DA
-
-does: least-frequently used eviction with dynamic aging
-
-params: none
-
-example usage:
-
-    ./webcachesim test.tr LFUDA 1000
-    
-    
 #### Filter-LRU
 
 does: LRU eviction + admit only after N requests
@@ -126,36 +86,6 @@ example usage (admit only objects smaller than 512KB):
 
     ./webcachesim test.tr ThLRU 1000 t=19
     
-#### ExpProb-LRU
-
-does: LRU eviction + admit with probability exponentially decreasing with object size
-
-params: c - the size which has a 50% chance of being admitted (used to determine the exponential family)
-
-example usage (admit objects with size 256KB with about 50% probability):
-
-    ./webcachesim test.tr ExpLRU 1000 c=18
-  
-#### LRU-K
-
-does: evict object which has oldest K-th reference in the past
-
-params: k - eviction based on k-th reference in the past
-
-example usage (each segment gets half the capacity)
-
-    ./webcachesim test.tr LRUK 1000 k=4
-
-#### AdaptSize (version 0.1)
-
-does: uses adaptive ExpLRU (ExpProb-LRU) policy that adapts with request traffic, [adapted from the official implementation](https://github.com/dasebe/AdaptSize)
-
-params: t - reconfiguration interval (default 500K), i - numeric iteration (precision, default 15)
-
-example usage
-
-    ./webcachesim test.tr AdaptSize 1000 t=1000000 i=5
-
 
 ## How to get traces:
 
@@ -227,36 +157,3 @@ This allows the user interface side to conveniently configure and use your new p
 
 
 
-## Contributors are welcome
-
-Want to contribute? Great! We follow the [Github contribution work flow](https://help.github.com/articles/github-flow/).
-This means that submissions should fork and use a Github pull requests to get merged into this code base.
-
-There are a couple ways to help out.
-
-### Documentation and use cases
-
-Tell us how you use webcachesim or how you'd want to use webcachesim and what you're missing to implement your use case.
-Feel free to [create an issue](https://github.com/dasebe/webcachesim/issues/new) for this purpose.
-
-### Bug Reports
-
-If you come across a bug in webcachesim, please file a bug report by [creating a new issue](https://github.com/dasebe/webcachesim/issues/new). This is an early-stage project, which depends on your input!
-
-### Write test cases
-
-This project has not be thoroughly tested, any test cases are likely to get a speedy merge.
-
-### Contribute a new caching policy
-
-If you want to add a new caching policy, please augment your code with a reference, a test case, and an example. Use pull requests as usual.
-
-## References
-
-We ask academic works, which built on this code, to reference the AdaptSize paper:
-
-    AdaptSize: Orchestrating the Hot Object Memory Cache in a CDN
-    Daniel S. Berger, Ramesh K. Sitaraman, Mor Harchol-Balter
-    To appear in USENIX NSDI in March 2017.
-    
-You can find more information on [USENIX NSDI 2017 here.](https://www.usenix.org/conference/nsdi17/technical-sessions)
