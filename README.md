@@ -11,6 +11,12 @@ Then, get started with
 
     make
 
+## Trace
+The Wikipedia trace [download link](http://lrb.cs.princeton.edu/wiki2018.tr.tar.gz). To uncomress:
+```shell script
+tar -xzvf wiki2018.tr.tar.gz
+```
+
 
 ## Using an exisiting policy
 
