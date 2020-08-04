@@ -11,9 +11,10 @@ class SimpleRequest
 {
 private:
     IdType _id; // request object id
+public:
     uint64_t _size; // request size in bytes
 
-public:
+//public:
     SimpleRequest()
     {
     }

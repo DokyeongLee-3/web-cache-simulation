@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <regex>
 #include "caches/lru_variants.h"
+#include "caches/cache_object.h"
 #include "request.h"
 
 
@@ -47,6 +48,8 @@ int main (int argc, char* argv[])
   ifstream infile;
   long long reqs = 0, hits = 0;
   long long t, id, size;
+  long long req_size = 0;
+  long long hit_size = 0;
 
   cerr << "running..." << endl;
 
@@ -54,11 +57,17 @@ int main (int argc, char* argv[])
   SimpleRequest* req = new SimpleRequest(0, 0);
   while (infile >> t >> id >> size)
     {
+	    //std::cerr<<"t is "<<t<<std::endl;
+	    //std::cerr<<"id is "<<id<<std::endl;
+	    //std::cerr<<"size is "<<size<<std::endl;
         reqs++;
         
         req->reinit(id,size);
+	CacheObject obj(req);
+	req_size += req->_size;
         if(webcache->lookup(req)) {
             hits++;
+	    hit_size += obj.size;
         } else {
             webcache->admit(req);
         }
@@ -68,15 +77,14 @@ int main (int argc, char* argv[])
 
   infile.close();
 
-
   cout.setf(ios::right);
 
   cout << setw(10) << "cacheType" << setw(15) <<  "cache_size" << setw(15) << "paramSummary"
-	  << setw(10) << "reqs" << setw(10) <<  "hits" << setw(15) << "hits/reqs" <<endl;
+	  << setw(10) << "reqs" << setw(10) <<  "hits" << setw(15) << "hits/reqs" << setw(26) << "hit-bytes/req-bytes"<<endl;
 
-  cout << setw(10) << cacheType << setw(15) << cache_size << setw(15) << paramSummary << setw(10)
+  cout << setw(10) << cacheType << setw(15) << cache_size  <<  setw(15) <<  paramSummary << setw(10)
        << reqs << setw(10) << hits << setw(15)
-       << double(hits)/reqs << endl;
+       << double(hits)/reqs << setw(26) << double(hit_size)/req_size<<endl;
 
   return 0;
 }

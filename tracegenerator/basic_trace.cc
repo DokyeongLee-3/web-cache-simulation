@@ -64,6 +64,7 @@ int main (int argc, char* argv[])
     exponential_distribution<> iaRandH (rateH);
     long double globalTime = iaRandH(rnd_gen);
     while(globalTime<reps) {
+	//cout<<"globalTime is "<<globalTime<<endl;
       reqseq.push_back(fi_pair_t(globalTime,i));
       globalTime += iaRandH(rnd_gen);
     }

@@ -12,14 +12,14 @@
 #include "request.h"
 
 // uncomment to enable cache debugging:
-// #define CDEBUG 1
+//#define CDEBUG 1
 
 // util for debug
 #ifdef CDEBUG
 inline void logMessage(std::string m, double x, double y, double z) {
     std::cerr << m << "," << x << "," << y  << "," << z << "\n";
 }
-#define LOG(m,x,y,z) logMessage(m,x,y,z)
+#define LOG(m,x,y,z) logMessage(m,x,y,z)//x는 지금 cache에 존재하는 file의 총량, y는 id, z는 request로 온 object의 크기
 #else
 #define LOG(m,x,y,z)
 #endif
@@ -73,7 +73,7 @@ public:
     static std::unique_ptr<Cache> create_unique(std::string name) {
         std::unique_ptr<Cache> Cache_instance;
         if(get_factory_instance().count(name) != 1) {
-            std::cerr << "unkown cacheType" << std::endl;
+            std::cerr << "unknown cacheType" << std::endl;
             return nullptr;
         }
         Cache_instance = get_factory_instance()[name]->create_unique();

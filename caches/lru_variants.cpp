@@ -43,7 +43,7 @@ void LRUCache::admit(SimpleRequest* req)
 {
     const uint64_t size = req->getSize();
     // object feasible to store?
-    if (size > _cacheSize) {
+    if (size > _cacheSize) {	//_cacheSize는 cache의 total 사이즈를 가리키고, 부모클래스인 Cache의 멤버변수로 정의되어있음
         LOG("L", _cacheSize, req->getId(), size);
         return;
     }
@@ -52,9 +52,9 @@ void LRUCache::admit(SimpleRequest* req)
         evict();
     }
     // admit new object
-    CacheObject obj(req);
-    _cacheList.push_front(obj);
-    _cacheMap[obj] = _cacheList.begin();
+    CacheObject obj(req); // object의ID와size를 초기화시켜서 정의
+    _cacheList.push_front(obj); // list의 헤드에 object 삽입
+    _cacheMap[obj] = _cacheList.begin(); // map에 obj 추가
     _currentSize += size;
     LOG("a", _currentSize, obj.id, obj.size);
 }
@@ -62,9 +62,9 @@ void LRUCache::admit(SimpleRequest* req)
 void LRUCache::evict(SimpleRequest* req)
 {
     CacheObject obj(req);
-    auto it = _cacheMap.find(obj);
+    auto it = _cacheMap.find(obj); // cache상에서 해당 obj가 있는지 map을 통해 찾아봄
     if (it != _cacheMap.end()) {
-        ListIteratorType lit = it->second;
+        ListIteratorType lit = it->second; 
         LOG("e", _currentSize, obj.id, obj.size);
         _currentSize -= obj.size;
         _cacheMap.erase(obj);

@@ -13,6 +13,7 @@ typedef std::multimap<long double, CacheObject> priority_object_map_type;	//mult
 typedef priority_object_map_type::iterator priority_object_map_iter;
 typedef std::unordered_map<CacheObject, priority_object_map_iter> object_iter_type;
 typedef std::unordered_map<CacheObject, long int> frequency_count_type;
+typedef std::unordered_map<CacheObject, int> timestamp;
 
 
 
@@ -27,7 +28,6 @@ protected:
 public:
 
 	GD(): Cache(){
-		std::cerr<<"parent class GD constructor called"<<std::endl;
 		clock = 0;
 	}
 	virtual ~GD(){
@@ -57,30 +57,86 @@ public:
 	virtual ~GDS(){
 	}
 };
-
 static Factory<GDS> factoryGDS("GDS");
-
-
 
 
 class GDSF : public GD{
 
-
 protected:
 	frequency_count_type frequency_count_map;
-	virtual long double new_H(SimpleRequest* req);
 
 public:
 	GDSF():GD(){
-		
+
 	}
 	virtual ~GDSF(){
 
 	}
 	virtual bool lookup(SimpleRequest* req);
 
+
+};
+static Factory<GDSF> factoryGDSF("GDSF");
+
+
+
+
+class GDSF_1 : public GDSF{
+
+protected:
+	frequency_count_type frequency_count_map;
+	virtual long double new_H(SimpleRequest* req);
+
+public:
+	GDSF_1():GDSF(){
+		
+	}
+	virtual ~GDSF_1(){
+
+	}
+};
+static Factory<GDSF_1> factoryGDSF_1("GDSF_1");
+
+
+
+
+class GDSF_packet: public GDSF{
+
+protected:
+	frequency_count_type frequency_count_map;
+	virtual long double new_H(SimpleRequest* req);
+	
+public:
+	GDSF_packet():GDSF(){
+	}
+	virtual ~GDSF_packet(){
+
+	}
+};
+static Factory<GDSF_packet> factoryGDSF_packet("GDSF_packet");
+
+
+
+
+/*
+class WGDSF: public GDSF{
+
+protected:
+	virtual long double new_H(SimpleRequest* req);
+
+public:
+	WGDSF(): GDSF(){
+	
+	}
+	virtual ~WGDSF(){
+
+	}
+	virtual bool lookup(SimpleRequest* req);
+	
 };
 
-static Factory<GDSF> factoryGDSF("GDSF");
+static Factory<WGDSF> factoryWGDSF("WGDSF");
+*/
+
 
 #endif

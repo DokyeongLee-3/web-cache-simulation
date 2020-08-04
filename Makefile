@@ -1,5 +1,7 @@
 TARGET = webcachesim
 OBJS += caches/lru_variants.o
+OBJS += caches/gdsf_evict_big.o
+#OBJS += caches/gdsf.o
 OBJS += random_helper.o
 OBJS += webcachesim.o
 LIBS += -lm
@@ -20,6 +22,9 @@ $(TARGET):	$(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 %.o: %.c
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
+%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 %.o: %.cpp
