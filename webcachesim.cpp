@@ -47,14 +47,14 @@ int main(int argc, char *argv[])
   }
 
   ifstream infile;
-  long long reqs = 0, hits = 0, bytes = 0, bytes_hit = 0;
+  long long reqs = 0, hits = 0;
   long long t, id, size;
   ofstream outfile;
   long long req_size = 0;
   long long hit_size = 0;
   long long backend_traffic = 0;
   bool hit = true;
-  double time =0;
+  double time_per_req =0;
   long double total_transfer_time =0;
 
   cerr << "running..." << endl;
@@ -65,57 +65,46 @@ int main(int argc, char *argv[])
 	outfile_name+= "_" + paramSummary;
   }
   outfile_name  += "_request_result.csv";
-  outfile.open(outfile_name);
+  outfile.open("./"+outfile_name);
   outfile<<"id,Size,Hit/Miss,Time(ms)\n";
   SimpleRequest *req = new SimpleRequest(0, 0);
+
+
   while (infile >> t >> id >> size)
-  {
-    //std::cerr<<"t is "<<t<<std::endl;
-    //std::cerr<<"id is "<<id<<std::endl;
-    //std::cerr<<"size is "<<size<<std::endl;
-    reqs++;
-    
-    req->reinit(id, size);
-    CacheObject obj(req);
-    req_size += req->_size;
-    if (webcache->lookup(req))
     {
-      hit = true;
-      hits++;
-      hit_size += obj.size;
-      time = (obj.size/12500.0)*2;
-    }
-    else
-    {
-		webcache->time = t;//add
+
+	      webcache->time = t;// Added by dklee
 
         reqs++;
-		bytes+=req->getSize();
         
         req->reinit(id,size);
+	      CacheObject obj(req);
+	      req_size += req->_size;
         if(webcache->lookup(req)) {
+            hit = true;
             hits++;
-			bytes_hit+=req->getSize();
+            hit_size += obj.size;
+            time_per_req = (obj.size/12500.0)*2;
         } else {
+            hit = false;
             webcache->admit(req);
+            backend_traffic+=req->_size;
+            time_per_req = (obj.size/12500.0)*2;
+            time_per_req += (obj.size/3000.0)*2;
         }
-      hit = false;
-      webcache->admit(req);
-      backend_traffic+=req->_size;
-      time = (obj.size/12500.0)*2;
-      time += (obj.size/3000.0)*2;
+        if(hit){
+          //std::cerr<<obj.id<<"\t"<<obj.size<<"\t"<<"Hit"<<"\t"<<time<<"\n";
+          outfile<<obj.id<<","<< obj.size<< ",Hit,"<< time_per_req <<"\n";
+          total_transfer_time+=time_per_req;
+        }else{
+          //std::cerr<<obj.id<<"\t"<<obj.size<<"\t"<<"Miss"<<"\t"<<time<<"\n";
+          outfile<<obj.id<<","<< obj.size<< ",Miss,"<< time_per_req <<"\n";
+          total_transfer_time+=time_per_req;
+        }
+
+        
     }
 
-    if(hit){
-      //std::cerr<<obj.id<<"\t"<<obj.size<<"\t"<<"Hit"<<"\t"<<time<<"\n";
-      outfile<<obj.id<<","<< obj.size<< ",Hit,"<< time<<"\n";
-      total_transfer_time+=time;
-    }else{
-      //std::cerr<<obj.id<<"\t"<<obj.size<<"\t"<<"Miss"<<"\t"<<time<<"\n";
-      outfile<<obj.id<<","<< obj.size<< ",Miss,"<< time<<"\n";
-      total_transfer_time+=time;
-    }
-  }
 
   delete req;
 
@@ -139,8 +128,8 @@ int main(int argc, char *argv[])
 	  <<reqs<<","
 	  <<hits<<","
 	  <<double(hits)/reqs<<","
-	  <<double(bytes_hit)/bytes<<","
-	  <<bytes<<","
+	  <<double(hit_size)/req_size<<","
+	  <<req_size<<","
 	  <<backend_traffic<<","
 	  <<total_transfer_time<<endl;
   return 0;
