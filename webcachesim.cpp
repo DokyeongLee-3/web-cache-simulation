@@ -57,9 +57,9 @@ int main (int argc, char* argv[])
   SimpleRequest* req = new SimpleRequest(0, 0);
   while (infile >> t >> id >> size)
     {
-	    //std::cerr<<"t is "<<t<<std::endl;
-	    //std::cerr<<"id is "<<id<<std::endl;
-	    //std::cerr<<"size is "<<size<<std::endl;
+
+	    webcache->time = t;// Added by dklee
+
         reqs++;
         
         req->reinit(id,size);

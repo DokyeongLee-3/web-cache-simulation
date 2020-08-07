@@ -80,6 +80,8 @@ public:
         return Cache_instance;
     }
 
+    long long time; // Added by dklee
+
 protected:
     // basic cache properties
     uint64_t _cacheSize; // size of cache in bytes

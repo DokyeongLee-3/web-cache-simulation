@@ -29,7 +29,7 @@ bool GD::lookup(SimpleRequest* req){
 
 
 void GD::admit(SimpleRequest* req){
-
+	//std::cerr<<"admit in GD"<<std::endl;
 	CacheObject new_obj(req);
 	if(_cacheSize < req->getSize()){
 		LOG("Can't admit", _cacheSize, req->getId(), req->getSize()); 
@@ -85,6 +85,7 @@ void GD::update_clock(long double new_clock){
 }
 
 long double GD::new_H(SimpleRequest* req){
+	//std::cerr<<"new H in GD"<<std::endl;
 	return clock + 1.0; // GD는 H = L + frequency*(cost/size)에서 frequency, size를 고려하지 않고, 나는 cost를 1로 두는 방법 고수해서 H = L(clock) + 1이 되어서 이런 식이 나옴->cost는 file별로 당연히 다를텐데 이걸  file별로 정확히 수치화할 수 있으면 더 나은 performance를 보일 것
 }
 
@@ -94,7 +95,7 @@ long double GDS::new_H(SimpleRequest* req){
 	return clock + 1/(double)(req->getSize());
 }
 
-bool GDSF::lookup(SimpleRequest* req){
+bool GDSF_1::lookup(SimpleRequest* req){
 	CacheObject obj(req);
 	auto it = object_iter_map.find(obj);
 	if(it != object_iter_map.end()){ 
@@ -113,6 +114,26 @@ bool GDSF::lookup(SimpleRequest* req){
 	}
 }
 
+bool GDSF_packet::lookup(SimpleRequest* req){
+        CacheObject obj(req);
+        auto it = object_iter_map.find(obj);
+        if(it != object_iter_map.end()){
+                frequency_count_map[obj]++;
+                LOG("h", 0, obj.id, obj.size);
+                CacheObject cacheObj = it->first;
+                priority_object_map_iter iter_ = it->second;
+                priority_object_map.erase(iter_);
+                long double new_h = new_H(req);
+                it->second = priority_object_map.emplace(new_h, cacheObj);
+                return true;
+        }
+        else{
+                frequency_count_map[obj] = 1;
+                return false;
+        }
+}
+
+
 long double GDSF_1::new_H(SimpleRequest* req){
 	CacheObject obj(req);
 	return clock + (double)frequency_count_map[obj]/(obj.size);
@@ -123,18 +144,79 @@ long double GDSF_packet::new_H(SimpleRequest* req){
 	CacheObject obj(req);
 	return clock + ((double)frequency_count_map[obj]*(2+(obj.size/536)))/(obj.size);
 }
-/*
-long double WGDSF::new_H(SimpleRequest* req){
-	CacheObject obj(req);
-	for(int i = 0 ; i < frequnecy_count_map[obj]; i++){
 
-		long double WTF = 
+void WGDSF::admit(SimpleRequest* req){
+	//std::cerr<<"admit in WGDSF"<<std::endl;
+	CacheObject new_obj(req);
+	if(_cacheSize < req->getSize()){
+	LOG("Can't admit", _cacheSize, req->getId(), req->getSize());
+		return;
 	}
-	
+	while(_currentSize + req->getSize() > _cacheSize){
+		evict();
+	}
+	long long t = this->time;
+	t_stamp[t][new_obj] = 1;
+	long double new_hval = new_H(req);
+	LOG("a", new_hval, new_obj.id, new_obj.size);
+	std::pair<long double, CacheObject> to_insert(new_hval, new_obj);
+	std::pair<CacheObject, long int> to_insert_frequency_count_map(new_obj, 1);
+	auto iter = priority_object_map.emplace(to_insert);
+	frequency_count_map.insert(to_insert_frequency_count_map);
+
+
+	std::pair<CacheObject, priority_object_map_iter> to_insert2(new_obj, iter);
+	object_iter_map.insert(to_insert2);
+	_currentSize = _currentSize + req->getSize();
+
 }
 
-long double WGDSF::lookup(SimpleRequest* req){
+
+long double WGDSF::new_H(SimpleRequest* req){
+	//std::cerr<<"new H in WGDSF"<<std::endl;
+	CacheObject obj(req);
+	long double WTF = 0;
+	long long t = this->time;
+	long int before = t+1;
+	for(long int i = t; i >= 0; i--){
+		if(t_stamp[i][obj] != 0){
+			//std::cerr<<"this time WTF is "<<(double)(t_stamp[i])[obj]/(before-i)<<std::endl;
+			WTF += (double)(t_stamp[i])[obj]/(before-i);
+			
+			before = i;
+		}
+	}
+	long double h_val = clock + (WTF/(obj.size));
+	//std::cerr<<"new priority is "<<h_val<<std::endl;
+	return h_val;
+}
+
+bool WGDSF::lookup(SimpleRequest* req){
+	//std::cerr<<"lookup in WGDSF"<<std::endl;
+	CacheObject obj(req);
+	long long t = this->time;
+	auto iter = t_stamp[t].find(obj);
+	auto it = object_iter_map.find(obj);
+	if(it != object_iter_map.end()){
+		frequency_count_map[obj]++;
+		if(iter != t_stamp[t].end())
+			t_stamp[t][obj]++;
+		else
+			t_stamp[t][obj]=1;
+		LOG("h", 0, obj.id, obj.size);
+		CacheObject cacheObj = it->first;
+		priority_object_map_iter iter_ = it->second;
+		priority_object_map.erase(iter_);
+		long double new_h = new_H(req);
+		it->second = priority_object_map.emplace(new_h, cacheObj);
+		return true;
+	}
+	else{	// 없으면 admit에서 frequency count =1, timestamp에 지금 t에 frequency = 1 할당
+		for(int i = 0 ; i<t; i++)
+			t_stamp[i].erase(obj);
+		return false;
+	}
 
 }
-*/
+
 

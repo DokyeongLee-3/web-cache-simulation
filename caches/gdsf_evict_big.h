@@ -13,7 +13,8 @@ typedef std::multimap<long double, CacheObject> priority_object_map_type;	//mult
 typedef priority_object_map_type::iterator priority_object_map_iter;
 typedef std::unordered_map<CacheObject, priority_object_map_iter> object_iter_type;
 typedef std::unordered_map<CacheObject, long int> frequency_count_type;
-typedef std::unordered_map<CacheObject, int> timestamp;
+typedef std::unordered_map<long int, frequency_count_type> timestamp;//timestamp[0]은 t1-t0사이의 object의frequency
+
 
 
 
@@ -23,7 +24,7 @@ protected:
 	long double clock;
 	priority_object_map_type priority_object_map; // <object, key> map
 	object_iter_type object_iter_map; // <object, priority_object_map_iter> map
-	virtual long double new_H(SimpleRequest* req); // GD, GDS, GDSF 모두 달라야 하는 function
+	long double new_H(SimpleRequest* req); // GD, GDS, GDSF 모두 달라야 하는 function
 
 public:
 
@@ -49,7 +50,7 @@ static Factory<GD> factoryGD("GD");
 class GDS : public GD{
 
 protected:
-	virtual long double new_H(SimpleRequest* req);	
+	long double new_H(SimpleRequest* req);	
 
 public:
 	GDS(): GD(){
@@ -59,8 +60,8 @@ public:
 };
 static Factory<GDS> factoryGDS("GDS");
 
-
-class GDSF : public GD{
+/*
+class GDSF : public GDS{
 
 protected:
 	frequency_count_type frequency_count_map;
@@ -72,23 +73,24 @@ public:
 	virtual ~GDSF(){
 
 	}
-	virtual bool lookup(SimpleRequest* req);
+	virtual bool lookup(SimpleRequest* req, long long t);
 
 
 };
 static Factory<GDSF> factoryGDSF("GDSF");
+*/
 
 
 
-
-class GDSF_1 : public GDSF{
+class GDSF_1 : public GD{
 
 protected:
 	frequency_count_type frequency_count_map;
 	virtual long double new_H(SimpleRequest* req);
+	virtual bool lookup(SimpleRequest* req);
 
 public:
-	GDSF_1():GDSF(){
+	GDSF_1():GD(){
 		
 	}
 	virtual ~GDSF_1(){
@@ -100,14 +102,15 @@ static Factory<GDSF_1> factoryGDSF_1("GDSF_1");
 
 
 
-class GDSF_packet: public GDSF{
+class GDSF_packet: public GD{
 
 protected:
 	frequency_count_type frequency_count_map;
 	virtual long double new_H(SimpleRequest* req);
+	virtual bool lookup(SimpleRequest* req);
 	
 public:
-	GDSF_packet():GDSF(){
+	GDSF_packet():GD(){
 	}
 	virtual ~GDSF_packet(){
 
@@ -118,25 +121,28 @@ static Factory<GDSF_packet> factoryGDSF_packet("GDSF_packet");
 
 
 
-/*
-class WGDSF: public GDSF{
+class WGDSF: public GD{
 
 protected:
+	frequency_count_type frequency_count_map;
 	virtual long double new_H(SimpleRequest* req);
 
 public:
-	WGDSF(): GDSF(){
+	WGDSF(): GD(){
 	
 	}
 	virtual ~WGDSF(){
 
 	}
 	virtual bool lookup(SimpleRequest* req);
+	virtual void admit(SimpleRequest* req);
+	//virtual void evict();
+	timestamp t_stamp;
+
 	
 };
 
 static Factory<WGDSF> factoryWGDSF("WGDSF");
-*/
 
 
 #endif
