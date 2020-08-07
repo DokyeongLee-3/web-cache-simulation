@@ -212,8 +212,8 @@ bool WGDSF::lookup(SimpleRequest* req){
 		return true;
 	}
 	else{	// 없으면 admit에서 frequency count =1, timestamp에 지금 t에 frequency = 1 할당
-		for(int i = 0 ; i<t; i++)
-			t_stamp[i].erase(obj);
+		//for(int i = 0 ; i<t; i++)
+		//	t_stamp[i].erase(obj);
 		return false;
 	}
 
