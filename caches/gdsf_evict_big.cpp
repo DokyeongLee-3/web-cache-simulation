@@ -1,4 +1,4 @@
-#include "gdsf_evict_big.h"
+#include "WGDSF_modify.h"
 #include <unordered_map>
 
 
@@ -42,8 +42,6 @@ void GD::admit(SimpleRequest* req){
 		LOG("a", new_H(req), new_obj.id, new_obj.size);
 		std::pair<long double, CacheObject> to_insert(new_H(req), new_obj);
 		auto iter = priority_object_map.emplace(to_insert);
-		//frequency_count_map.insert(new_obj, 1);
-		//////Map<CacheObject, priority_object ma 에서의 iterator> 에도 삽입
 		std::pair<CacheObject, priority_object_map_iter> to_insert2(new_obj, iter);
 		object_iter_map.insert(to_insert2);
 		_currentSize = _currentSize + req->getSize();
@@ -149,7 +147,7 @@ void WGDSF::admit(SimpleRequest* req){
 	//std::cerr<<"admit in WGDSF"<<std::endl;
 	CacheObject new_obj(req);
 	if(_cacheSize < req->getSize()){
-	LOG("Can't admit", _cacheSize, req->getId(), req->getSize());
+		LOG("Can't admit", _cacheSize, req->getId(), req->getSize());
 		return;
 	}
 	while(_currentSize + req->getSize() > _cacheSize){
@@ -157,13 +155,13 @@ void WGDSF::admit(SimpleRequest* req){
 	}
 	long long t = this->time;
 	t_stamp[t][new_obj] = 1;
+	std::pair<CacheObject, long int> to_insert_frequency_count_map(new_obj, 1);
+	frequency_count_map.insert(to_insert_frequency_count_map);
 	long double new_hval = new_H(req);
 	LOG("a", new_hval, new_obj.id, new_obj.size);
 	std::pair<long double, CacheObject> to_insert(new_hval, new_obj);
-	std::pair<CacheObject, long int> to_insert_frequency_count_map(new_obj, 1);
 	auto iter = priority_object_map.emplace(to_insert);
-	frequency_count_map.insert(to_insert_frequency_count_map);
-
+		
 
 	std::pair<CacheObject, priority_object_map_iter> to_insert2(new_obj, iter);
 	object_iter_map.insert(to_insert2);
@@ -178,15 +176,18 @@ long double WGDSF::new_H(SimpleRequest* req){
 	long double WTF = 0;
 	long long t = this->time;
 	long int before = t+1;
+	long int count = 0;
 	for(long int i = t; i >= 0; i--){
-		if(t_stamp[i][obj] != 0){
+		if((count < frequency_count_map[obj]) && (t_stamp[i][obj] != 0)){
 			//std::cerr<<"this time WTF is "<<(double)(t_stamp[i])[obj]/(before-i)<<std::endl;
-			WTF += (double)(t_stamp[i])[obj]/(before-i);
-			
+			WTF += (double)t_stamp[i][obj]/(before-i);
 			before = i;
+			count++;
 		}
+		if(count ==  frequency_count_map[obj])
+			break;
 	}
-	long double h_val = clock + (WTF/(obj.size));
+	long double h_val = clock + (WTF/obj.size);
 	//std::cerr<<"new priority is "<<h_val<<std::endl;
 	return h_val;
 }
@@ -214,6 +215,7 @@ bool WGDSF::lookup(SimpleRequest* req){
 	else{	// 없으면 admit에서 frequency count =1, timestamp에 지금 t에 frequency = 1 할당
 		//for(int i = 0 ; i<t; i++)
 		//	t_stamp[i].erase(obj);
+	
 		return false;
 	}
 
