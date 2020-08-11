@@ -10,14 +10,14 @@ bool GD::lookup(SimpleRequest* req){
 	auto iter_ = object_iter_map.find(obj);
 	if(iter_ != object_iter_map.end()){	//hit
 		LOG("h", 0, obj.id, obj.size); 
-			// ì›ë˜ hitì¼ë•Œ GDì—ì„œëŠ” ì›ë˜ H valueë¡œ restoreí•˜ëŠ”ë° ê·¸ë ‡ê²Œ í•˜ì§€ ì•Šê³  hitëœ fileì´ë‚˜ ìƒˆë¡œ cachingëœ fileë“¤ì˜ priorityì— monotonicí•˜ê²Œ ì¦ê°€í•˜ëŠ” clockì„ priorityì— ë”í•´ì¤€ë‹¤ë©´ recencyë¥¼ ë¶€ì—¬í•  ìˆ˜ ìˆìŒ 
+			// ¿ø·¡ hitÀÏ¶§ GD¿¡¼­´Â ¿ø·¡ H value·Î restoreÇÏ´Âµ¥ ±×·¸°Ô ÇÏÁö ¾Ê°í hitµÈ fileÀÌ³ª »õ·Î cachingµÈ fileµéÀÇ priority¿¡ monotonicÇÏ°Ô Áõ°¡ÇÏ´Â clockÀ» priority¿¡ ´õÇØÁØ´Ù¸é recency¸¦ ºÎ¿©ÇÒ ¼ö ÀÖÀ½ 
 
 		long double new_h_val = new_H(req);
 		auto iter2 = iter_->second;
 		priority_object_map.erase(iter2);
 		std::pair<long double, CacheObject> to_insert(new_h_val, obj);
 		auto iter_ = priority_object_map.emplace(to_insert);
-		assert(object_iter_map.find(obj) != object_iter_map.end()); // object_iter_mapì— objê°€ ë‹¹ì—°íˆ ìˆì–´ì•¼ í•œë‹¤(for debugging)
+		assert(object_iter_map.find(obj) != object_iter_map.end()); // object_iter_map¿¡ obj°¡ ´ç¿¬È÷ ÀÖ¾î¾ß ÇÑ´Ù(for debugging)
 		object_iter_map[obj] = iter_;
 		return true;	
 	}
@@ -61,7 +61,7 @@ void GD::evict(){
 		}
 
 		update_clock(min_priority);
-		CacheObject delobj = min_priority_iter->second; //ì§€ê¸ˆ ì§€ìš°ëŠ” fileì˜ priorityë¡œ clockì„ update -> clockì€ monotonicí•˜ê²Œ increase, ë‚˜ì¤‘ì— cacheì—admitë˜ëŠ”fileì¼ìˆ˜ë¡ ë†’ì€ clockì„ ê°€ì§ -> recency
+		CacheObject delobj = min_priority_iter->second; //Áö±İ Áö¿ì´Â fileÀÇ priority·Î clockÀ» update -> clockÀº monotonicÇÏ°Ô increase, ³ªÁß¿¡ cache¿¡admitµÇ´ÂfileÀÏ¼ö·Ï ³ôÀº clockÀ» °¡Áü -> recency
 		LOG("e", min_priority_iter->first, delobj.id, delobj.size);
 		_currentSize = _currentSize - delobj.size;
 		priority_object_map.erase(min_priority_iter);
@@ -84,7 +84,7 @@ void GD::update_clock(long double new_clock){
 
 long double GD::new_H(SimpleRequest* req){
 	//std::cerr<<"new H in GD"<<std::endl;
-	return clock + 1.0; // GDëŠ” H = L + frequency*(cost/size)ì—ì„œ frequency, sizeë¥¼ ê³ ë ¤í•˜ì§€ ì•Šê³ , ë‚˜ëŠ” costë¥¼ 1ë¡œ ë‘ëŠ” ë°©ë²• ê³ ìˆ˜í•´ì„œ H = L(clock) + 1ì´ ë˜ì–´ì„œ ì´ëŸ° ì‹ì´ ë‚˜ì˜´->costëŠ” fileë³„ë¡œ ë‹¹ì—°íˆ ë‹¤ë¥¼í…ë° ì´ê±¸  fileë³„ë¡œ ì •í™•íˆ ìˆ˜ì¹˜í™”í•  ìˆ˜ ìˆìœ¼ë©´ ë” ë‚˜ì€ performanceë¥¼ ë³´ì¼ ê²ƒ
+	return clock + 1.0; // GD´Â H = L + frequency*(cost/size)¿¡¼­ frequency, size¸¦ °í·ÁÇÏÁö ¾Ê°í, ³ª´Â cost¸¦ 1·Î µÎ´Â ¹æ¹ı °í¼öÇØ¼­ H = L(clock) + 1ÀÌ µÇ¾î¼­ ÀÌ·± ½ÄÀÌ ³ª¿È->cost´Â fileº°·Î ´ç¿¬È÷ ´Ù¸¦ÅÙµ¥ ÀÌ°É  fileº°·Î Á¤È®È÷ ¼öÄ¡È­ÇÒ ¼ö ÀÖÀ¸¸é ´õ ³ªÀº performance¸¦ º¸ÀÏ °Í
 }
 
 
@@ -212,7 +212,7 @@ bool WGDSF::lookup(SimpleRequest* req){
 		it->second = priority_object_map.emplace(new_h, cacheObj);
 		return true;
 	}
-	else{	// ì—†ìœ¼ë©´ admitì—ì„œ frequency count =1, timestampì— ì§€ê¸ˆ tì— frequency = 1 í• ë‹¹
+	else{	// ¾øÀ¸¸é admit¿¡¼­ frequency count =1, timestamp¿¡ Áö±İ t¿¡ frequency = 1 ÇÒ´ç
 		//for(int i = 0 ; i<t; i++)
 		//	t_stamp[i].erase(obj);
 	
@@ -221,4 +221,32 @@ bool WGDSF::lookup(SimpleRequest* req){
 
 }
 
+FilterWGDSF::FilterWGDSF()
+    : WGDSF(),
+      _nParam(2)
+{
+}
 
+void FilterWGDSF::setPar(std::string parName, std::string parValue){
+    if(parName.compare("n") == 0) {
+        const uint64_t n = std::stoull(parValue);
+        assert(n>0);
+        _nParam = n;
+    } else {
+        std::cerr << "unrecognized parameter: " << parName << std::endl;
+    }
+}
+
+bool FilterWGDSF::lookup(SimpleRequest* req){
+    CacheObject obj(req);
+    _filter[obj]++;
+    return WGDSF::lookup(req);
+}
+
+void FilterWGDSF::admit(SimpleRequest* req){
+    CacheObject obj(req);
+    if (_filter[obj] <= _nParam) {
+        return;
+    }
+    WGDSF::admit(req);
+}

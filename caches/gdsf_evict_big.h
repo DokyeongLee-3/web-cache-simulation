@@ -9,11 +9,11 @@
 #include "cache.h"
 #include "cache_object.h"
 
-typedef std::multimap<long double, CacheObject> priority_object_map_type;	//multimapì€ ê·¸ëƒ¥ mapê³¼ ë‹¤ë¥´ê²Œ keyê°’ì´ ì¤‘ë³µê°€ëŠ¥
+typedef std::multimap<long double, CacheObject> priority_object_map_type;	//multimapÀº ±×³É map°ú ´Ù¸£°Ô key°ªÀÌ Áßº¹°¡´É
 typedef priority_object_map_type::iterator priority_object_map_iter;
 typedef std::unordered_map<CacheObject, priority_object_map_iter> object_iter_type;
 typedef std::unordered_map<CacheObject, long int> frequency_count_type;
-typedef std::unordered_map<long int, frequency_count_type> timestamp;//timestamp[0]ì€ t1-t0ì‚¬ì´ì˜ objectì˜frequency
+typedef std::unordered_map<long int, frequency_count_type> timestamp;//timestamp[0]Àº t1-t0»çÀÌÀÇ objectÀÇfrequency
 
 
 
@@ -24,7 +24,7 @@ protected:
 	long double clock;
 	priority_object_map_type priority_object_map; // <object, key> map
 	object_iter_type object_iter_map; // <object, priority_object_map_iter> map
-	long double new_H(SimpleRequest* req); // GD, GDS, GDSF ëª¨ë‘ ë‹¬ë¼ì•¼ í•˜ëŠ” function
+	long double new_H(SimpleRequest* req); // GD, GDS, GDSF ¸ğµÎ ´Ş¶ó¾ß ÇÏ´Â function
 
 public:
 
@@ -144,5 +144,26 @@ public:
 
 static Factory<WGDSF> factoryWGDSF("WGDSF");
 
+/*
+  Filter+WGDSF (admit only after N requests)
+*/
+class FilterWGDSF : public WGDSF
+{
+protected:
+    uint64_t _nParam;
+    std::unordered_map<CacheObject, uint64_t> _filter;
+
+public:
+    FilterWGDSF();
+    virtual ~FilterWGDSF()
+    {
+    }
+
+    virtual void setPar(std::string parName, std::string parValue);
+    virtual bool lookup(SimpleRequest* req);
+    virtual void admit(SimpleRequest* req);
+};
+
+static Factory<FilterWGDSF> factoryFilter("FilterWGDSF");
 
 #endif
