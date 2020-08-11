@@ -62,10 +62,11 @@ int main(int argc, char *argv[])
   infile.open(path);
   string outfile_name = argv[2];
   if( !paramSummary.empty() ){
-	outfile_name+= "_" + paramSummary;
+	  outfile_name+= "_" + paramSummary;
   }
   outfile_name  += "_request_result.csv";
-  outfile.open("./"+outfile_name);
+  outfile_name = "/home/joel610/web-cache-simulation/" + outfile_name;
+  outfile.open(outfile_name);
   outfile<<"id,Size,Hit/Miss,Time(ms)\n";
   SimpleRequest *req = new SimpleRequest(0, 0);
 

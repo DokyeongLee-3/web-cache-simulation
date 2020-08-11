@@ -43,7 +43,7 @@ void LRUCache::admit(SimpleRequest* req)
 {
     const uint64_t size = req->getSize();
     // object feasible to store?
-    if (size > _cacheSize) {	//_cacheSizeëŠ” cacheì˜ total ì‚¬ì´ì¦ˆë¥¼ ê°€ë¦¬í‚¤ê³ , ë¶€ëª¨í´ëž˜ìŠ¤ì¸ Cacheì˜ ë©¤ë²„ë³€ìˆ˜ë¡œ ì •ì˜ë˜ì–´ìžˆìŒ
+    if (size > _cacheSize) {   //_cacheSize??cache??total ?¬ì´××ˆë? ê° ë¦¬í‚¤ê³? ë¶ Òï¨í´?˜ìŠ¤??Cache??×¼¤ë²„ë³ ?˜ë¡œ ?•ì˜?˜ì–´?ˆìŒ
         LOG("L", _cacheSize, req->getId(), size);
         return;
     }
@@ -52,9 +52,9 @@ void LRUCache::admit(SimpleRequest* req)
         evict();
     }
     // admit new object
-    CacheObject obj(req); // objectì˜IDì™€sizeë¥¼ ì´ˆê¸°í™”ì‹œì¼œì„œ ì •ì˜
-    _cacheList.push_front(obj); // listì˜ í—¤ë“œì— object ì‚½ìž…
-    _cacheMap[obj] = _cacheList.begin(); // mapì— obj ì¶”ê°€
+    CacheObject obj(req); // object?˜ID? sizeë¥?ì´ˆê¸°?”ì‹œì¼œì„œ ?•ì˜
+    _cacheList.push_front(obj); // list???¤ë“œ??object ?½ìž…
+    _cacheMap[obj] = _cacheList.begin(); // map??obj ì¶”ê?
     _currentSize += size;
     LOG("a", _currentSize, obj.id, obj.size);
 }
@@ -62,15 +62,16 @@ void LRUCache::admit(SimpleRequest* req)
 void LRUCache::evict(SimpleRequest* req)
 {
     CacheObject obj(req);
-    auto it = _cacheMap.find(obj); // cacheìƒì—ì„œ í•´ë‹¹ objê°€ ìžˆëŠ”ì§€ mapì„ í†µí•´ ì°¾ì•„ë´„
+    auto it = _cacheMap.find(obj);
     if (it != _cacheMap.end()) {
-        ListIteratorType lit = it->second; 
+        ListIteratorType lit = it->second;
         LOG("e", _currentSize, obj.id, obj.size);
         _currentSize -= obj.size;
         _cacheMap.erase(obj);
         _cacheList.erase(lit);
     }
 }
+
 
 SimpleRequest* LRUCache::evict_return()
 {
@@ -99,8 +100,8 @@ void LRUCache::evict()
 void LRUCache::hit(lruCacheMapType::const_iterator it, uint64_t size)
 {
     // transfers it->second (i.e., ObjInfo) from _cacheList into 
-    // 	*this. The transferred it->second is to be inserted before 
-    // 	the element pointed to by _cacheList.begin()
+    //    *this. The transferred it->second is to be inserted before 
+    //    the element pointed to by _cacheList.begin()
     //
     // _cacheList is defined in class LRUCache in lru_variants.h 
     _cacheList.splice(_cacheList.begin(), _cacheList, it->second);
@@ -179,3 +180,163 @@ void ThLRUCache::admit(SimpleRequest* req)
     }
 }
 
+/*
+  SRRIP (M-bits)
+*/
+SRRIPCache::SRRIPCache()
+    : LRUCache(),
+      _mParam(3)
+{
+  hit_RRPV = 0;
+}
+
+void SRRIPCache::setPar(std::string parName, std::string parValue) {
+    if(parName.compare("m") == 0) {
+        const uint64_t m = std::stoull(parValue);
+        assert(m>0);
+        _mParam = pow(2.0,m)-1;
+        old_mParam = _mParam;
+//        std::cout<<"M is "<<m<<" _mParam is "<<_mParam<<std::endl;
+    } else {
+        std::cerr << "unrecognized parameter: " << parName << std::endl;
+    }
+}
+
+bool SRRIPCache::lookup(SimpleRequest* req)
+{
+//   std::cout<<"here?"<<std::endl;
+    CacheObject obj(req);
+    auto it = _cacheMap.find(obj);
+    if (it != _cacheMap.end()) {
+        // log hit
+        LOG("h", 0, obj.id, obj.size);
+        hit(it, obj.size);
+          _RRPVstatus[obj].first = hit_RRPV;
+          _RRPVstatus[obj].second = false;
+//      for(auto lit = _RRPVstatus.begin(); lit != _RRPVstatus.end(); ++lit){
+//         std::cout<<"ID: "<<lit->first.id<<"-"<<"RRPV: "<<lit->second<<" ";
+//      }
+//      std::cout<<std::endl;
+        return true;
+    }
+    return false;
+}
+
+
+
+
+void SRRIPCache::admit(SimpleRequest* req)
+{
+    const uint64_t size = req->getSize();
+    // object feasible to store?
+    if (size > _cacheSize) {
+        LOG("L", _cacheSize, req->getId(), size);
+        return;
+    }
+    // check eviction needed
+    while (_currentSize + size > _cacheSize) {
+        evict();
+    }
+    // admit new object
+    CacheObject obj(req);
+     _RRPVstatus[obj] = std::make_pair(_mParam-1, true);
+     _RRPVpq.push(std::make_pair(_mParam-1,obj));
+    _cacheList.push_front(obj);
+    _cacheMap[obj] = _cacheList.begin();
+    _currentSize += size;
+    LOG("a", _currentSize, obj.id, obj.size);
+    //std::cout<<"pqSIZE: "<<_RRPVpq.size()<<" pqTOP.RRPV: "<<_RRPVpq.top().first<<" pqTOP.size: "<<_RRPVpq.top().second.size<<" pqTOP.id: "<<_RRPVpq.top().second.id<<std::endl;
+    
+//   for(auto lit = _RRPVstatus.begin(); lit != _RRPVstatus.end(); ++lit){
+//      std::cout<<"ID:"<<lit->first.id<<"-"<<"RRPV:"<<lit->second<<" ++ ";
+//   }
+//   std::cout<<std::endl;
+}
+
+void SRRIPCache::evict()
+{
+  //std::cout<<"Get ready to evict"<<std::endl;
+   //value°ªÀÌ 2^M-1 ÀÎkey°ªÀ» Ã£¾Æ¼­ ±× ÇØ´ç ¿ÀºêÁ§Æ®¸¦ evict(req)·Î ³Ñ°ÜÁÖ±â
+   SRRIPCache::evict_return();
+}
+
+SimpleRequest* SRRIPCache::evict_return()
+{
+
+
+  if(_cacheList.size() > 0) {
+    //»©¾ßÇÏ´Â °æ¿ì, ¿À·¡µµ·Ï Á¢±ÙµÇÁö ¾ÊÀºÄ£±¸
+    CacheObject obj;
+    //std::cout<<"error where"<<std::endl;
+    while(1){
+      auto check = _RRPVpq.top();
+      //std::cout<<"check get?"<<std::endl;
+      
+      if(_RRPVstatus[check.second].second == true){
+        //std::cout<<"In if"<<std::endl;
+    
+        obj = check.second;
+        if(_RRPVstatus[check.second].first != old_mParam){
+          old_mParam = _RRPVstatus[check.second].first;
+          _mParam--;
+          hit_RRPV--;
+          
+          //std::cout<<" "<<_mParam;
+        }
+        break;
+      }
+      else{
+      //std::cout<<"In else"<<std::endl;
+    
+        _RRPVpq.push(std::make_pair(_RRPVstatus[check.second].first, check.second));
+        _RRPVstatus[check.second].second = true;
+        _RRPVpq.pop();
+      }
+      
+   } 
+   LOG("e", _currentSize, obj.id, obj.size);
+    SimpleRequest* req = new SimpleRequest(obj.id, obj.size);
+    LRUCache::evict(req);
+    _RRPVstatus.erase(obj);
+    _RRPVpq.pop();
+    return req;
+  
+  }
+
+  return NULL;
+
+}
+
+
+void BRRIPCache::admit(SimpleRequest* req)
+{
+//   std::cout<<"BRRIP admit and cache size is "<<_cacheSize<<std::endl;
+    const uint64_t size = req->getSize();
+    // object feasible to store?
+    
+    if (size > _cacheSize) {
+        LOG("L", _cacheSize, req->getId(), size);
+        return;
+    }
+    // check eviction needed
+    while (_currentSize + size > _cacheSize) {
+        evict();
+    }
+    // admit new object
+    CacheObject obj(req);
+    if(rand()%100==0){
+      _RRPVstatus[obj] = std::make_pair(_mParam-1, true);
+   }else{
+       _RRPVstatus[obj] = std::make_pair(_mParam, true);
+    }
+     _RRPVpq.push(std::make_pair(_mParam-1,obj));
+   _cacheList.push_front(obj);
+    _cacheMap[obj] = _cacheList.begin();
+    _currentSize += size;
+//    std::cout<<"BRRIP ongoing>>>>>>"<<std::endl;
+    LOG("a", _currentSize, obj.id, obj.size);
+//   for(auto lit = _RRPVstatus.begin(); lit != _RRPVstatus.end(); ++lit){
+//      std::cout<<"ID:"<<lit->first.id<<"-"<<"RRPV:"<<lit->second<<" ++ ";
+//   }
+//   std::cout<<std::endl;
+}

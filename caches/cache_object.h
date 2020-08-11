@@ -9,6 +9,8 @@ struct CacheObject
     IdType id;
     uint64_t size;
 
+    CacheObject(){}
+
     CacheObject(SimpleRequest* req)
         : id(req->getId()),
           size(req->getSize())
