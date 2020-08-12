@@ -250,4 +250,33 @@ bool WGDSF::lookup(SimpleRequest* req){
 
 }
 
+FilterWGDSF::FilterWGDSF()
+    : WGDSF(),
+      _nParam(2)
+{
+}
+
+void FilterWGDSF::setPar(std::string parName, std::string parValue){
+    if(parName.compare("n") == 0) {
+        const uint64_t n = std::stoull(parValue);
+        assert(n>0);
+        _nParam = n;
+    } else {
+        std::cerr << "unrecognized parameter: " << parName << std::endl;
+    }
+}
+
+bool FilterWGDSF::lookup(SimpleRequest* req){
+    CacheObject obj(req);
+    _filter[obj]++;
+    return WGDSF::lookup(req);
+}
+
+void FilterWGDSF::admit(SimpleRequest* req){
+    CacheObject obj(req);
+    if (_filter[obj] <= _nParam) {
+        return;
+    }
+    WGDSF::admit(req);
+}
 

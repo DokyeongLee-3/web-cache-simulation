@@ -149,5 +149,27 @@ public:
 
 static Factory<WGDSF> factoryWGDSF("WGDSF");
 
+/*
+  Filter+WGDSF (admit only after N requests)
+*/
+class FilterWGDSF : public WGDSF
+{
+protected:
+    uint64_t _nParam;
+    std::unordered_map<CacheObject, uint64_t> _filter;
+
+public:
+    FilterWGDSF();
+    virtual ~FilterWGDSF()
+    {
+    }
+
+    virtual void setPar(std::string parName, std::string parValue);
+    virtual bool lookup(SimpleRequest* req);
+    virtual void admit(SimpleRequest* req);
+};
+
+static Factory<FilterWGDSF> factoryFilter("FilterWGDSF");
+
 
 #endif
