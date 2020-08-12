@@ -279,17 +279,3 @@ void FilterWGDSF::admit(SimpleRequest* req){
     }
     WGDSF::admit(req);
 }
-
-bool FilterWGDSF::lookup(SimpleRequest* req){
-    CacheObject obj(req);
-    _filter[obj]++;
-    return WGDSF::lookup(req);
-}
-
-void FilterWGDSF::admit(SimpleRequest* req){
-    CacheObject obj(req);
-    if (_filter[obj] <= _nParam) {
-        return;
-    }
-    WGDSF::admit(req);
-}
