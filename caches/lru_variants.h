@@ -3,6 +3,9 @@
 
 #include <unordered_map>
 #include <list>
+#include <algorithm>
+#include <queue>
+#include <vector>
 #include <random>
 #include "cache.h"
 #include "cache_object.h"
@@ -11,7 +14,7 @@
 
 typedef std::list<CacheObject>::iterator ListIteratorType;
 typedef std::unordered_map<CacheObject, ListIteratorType> lruCacheMapType;
-
+typedef std::pair<long int,CacheObject> RRPVobj;
 
 
 /*
@@ -108,5 +111,57 @@ public:
 
 static Factory<ThLRUCache> factoryThLRU("ThLRU");
 
+
+/*
+  SRRIP (M-bits)
+*/
+class SRRIPCache : public LRUCache
+{
+public:
+struct cmp{
+  bool operator()(RRPVobj a, RRPVobj b){
+    return a.first < b.first;
+  }
+};
+    long int _mParam;
+    std::unordered_map<CacheObject, std::pair<long int, bool>> _RRPVstatus;
+    std::priority_queue<RRPVobj, std::deque<RRPVobj>, cmp> _RRPVpq;
+  long  int RRPV;
+   long int hit_RRPV;
+  long  int old_mParam;
+
+   
+public:
+    SRRIPCache() ;
+    virtual ~SRRIPCache()
+    {
+    }
+
+    virtual void setPar(std::string parName, std::string parValue);
+    virtual bool lookup(SimpleRequest* req);
+    virtual void admit(SimpleRequest* req);
+     virtual void evict();
+    virtual SimpleRequest* evict_return();
+//   virtual void evict(SimpleRequest* req);
+};
+
+static Factory<SRRIPCache> factorySRRIP("SRRIP");
+
+
+/*
+  BRRIP (M-bits)
+*/
+class BRRIPCache : public SRRIPCache
+{
+public:
+    BRRIPCache() : SRRIPCache() {};
+    virtual ~BRRIPCache()
+    {
+    }
+
+    virtual void admit(SimpleRequest* req);
+};
+
+static Factory<BRRIPCache> factoryBRRIP("BRRIP");
 
 #endif

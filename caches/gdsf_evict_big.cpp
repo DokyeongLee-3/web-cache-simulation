@@ -1,6 +1,5 @@
-#include "gdsf_evict_big.h"
 #include <unordered_map>
-
+#include "gdsf_evict_big.h"
 
 
 
@@ -10,14 +9,14 @@ bool GD::lookup(SimpleRequest* req){
 	auto iter_ = object_iter_map.find(obj);
 	if(iter_ != object_iter_map.end()){	//hit
 		LOG("h", 0, obj.id, obj.size); 
-			// ¿ø·¡ hitÀÏ¶§ GD¿¡¼­´Â ¿ø·¡ H value·Î restoreÇÏ´Âµ¥ ±×·¸°Ô ÇÏÁö ¾Ê°í hitµÈ fileÀÌ³ª »õ·Î cachingµÈ fileµéÀÇ priority¿¡ monotonicÇÏ°Ô Áõ°¡ÇÏ´Â clockÀ» priority¿¡ ´õÇØÁØ´Ù¸é recency¸¦ ºÎ¿©ÇÒ ¼ö ÀÖÀ½ 
+			// ï¿½ï¿½ï¿½ï¿½ hitï¿½Ï¶ï¿½ GDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ H valueï¿½ï¿½ restoreï¿½Ï´Âµï¿½ ï¿½×·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ hitï¿½ï¿½ fileï¿½Ì³ï¿½ ï¿½ï¿½ï¿½ï¿½ cachingï¿½ï¿½ fileï¿½ï¿½ï¿½ï¿½ priorityï¿½ï¿½ monotonicï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ clockï¿½ï¿½ priorityï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø´Ù¸ï¿½ recencyï¿½ï¿½ ï¿½Î¿ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
 
 		long double new_h_val = new_H(req);
 		auto iter2 = iter_->second;
 		priority_object_map.erase(iter2);
 		std::pair<long double, CacheObject> to_insert(new_h_val, obj);
 		auto iter_ = priority_object_map.emplace(to_insert);
-		assert(object_iter_map.find(obj) != object_iter_map.end()); // object_iter_map¿¡ obj°¡ ´ç¿¬È÷ ÀÖ¾î¾ß ÇÑ´Ù(for debugging)
+		assert(object_iter_map.find(obj) != object_iter_map.end()); // object_iter_mapï¿½ï¿½ objï¿½ï¿½ ï¿½ç¿¬ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ ï¿½Ñ´ï¿½(for debugging)
 		object_iter_map[obj] = iter_;
 		return true;	
 	}
@@ -61,7 +60,7 @@ void GD::evict(){
 		}
 
 		update_clock(min_priority);
-		CacheObject delobj = min_priority_iter->second; //Áö±Ý Áö¿ì´Â fileÀÇ priority·Î clockÀ» update -> clockÀº monotonicÇÏ°Ô increase, ³ªÁß¿¡ cache¿¡admitµÇ´ÂfileÀÏ¼ö·Ï ³ôÀº clockÀ» °¡Áü -> recency
+		CacheObject delobj = min_priority_iter->second; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ fileï¿½ï¿½ priorityï¿½ï¿½ clockï¿½ï¿½ update -> clockï¿½ï¿½ monotonicï¿½Ï°ï¿½ increase, ï¿½ï¿½ï¿½ß¿ï¿½ cacheï¿½ï¿½admitï¿½Ç´ï¿½fileï¿½Ï¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ clockï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ -> recency
 		LOG("e", min_priority_iter->first, delobj.id, delobj.size);
 		_currentSize = _currentSize - delobj.size;
 		priority_object_map.erase(min_priority_iter);
@@ -84,7 +83,7 @@ void GD::update_clock(long double new_clock){
 
 long double GD::new_H(SimpleRequest* req){
 	//std::cerr<<"new H in GD"<<std::endl;
-	return clock + 1.0; // GD´Â H = L + frequency*(cost/size)¿¡¼­ frequency, size¸¦ °í·ÁÇÏÁö ¾Ê°í, ³ª´Â cost¸¦ 1·Î µÎ´Â ¹æ¹ý °í¼öÇØ¼­ H = L(clock) + 1ÀÌ µÇ¾î¼­ ÀÌ·± ½ÄÀÌ ³ª¿È->cost´Â fileº°·Î ´ç¿¬È÷ ´Ù¸¦ÅÙµ¥ ÀÌ°É  fileº°·Î Á¤È®È÷ ¼öÄ¡È­ÇÒ ¼ö ÀÖÀ¸¸é ´õ ³ªÀº performance¸¦ º¸ÀÏ °Í
+	return clock + 1.0; // GDï¿½ï¿½ H = L + frequency*(cost/size)ï¿½ï¿½ï¿½ï¿½ frequency, sizeï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½, ï¿½ï¿½ï¿½ï¿½ costï¿½ï¿½ 1ï¿½ï¿½ ï¿½Î´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ H = L(clock) + 1ï¿½ï¿½ ï¿½Ç¾î¼­ ï¿½Ì·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½->costï¿½ï¿½ fileï¿½ï¿½ï¿½ï¿½ ï¿½ç¿¬ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½Ùµï¿½ ï¿½Ì°ï¿½  fileï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È®ï¿½ï¿½ ï¿½ï¿½Ä¡È­ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ performanceï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 }
 
 
@@ -154,7 +153,10 @@ void WGDSF::admit(SimpleRequest* req){
 		evict();
 	}
 	long long t = this->time;
-	t_stamp[t][new_obj] = 1;
+
+	//t_stamp[t][new_obj] = 1;
+	t_stamp_[new_obj][t] = 1;
+
 	std::pair<CacheObject, long int> to_insert_frequency_count_map(new_obj, 1);
 	frequency_count_map.insert(to_insert_frequency_count_map);
 	long double new_hval = new_H(req);
@@ -176,6 +178,9 @@ long double WGDSF::new_H(SimpleRequest* req){
 	long double WTF = 0;
 	long long t = this->time;
 	long int before = t+1;
+
+	
+	/*	
 	long int count = 0;
 	for(long int i = t; i >= 0; i--){
 		if((count < frequency_count_map[obj]) && (t_stamp[i][obj] != 0)){
@@ -187,8 +192,20 @@ long double WGDSF::new_H(SimpleRequest* req){
 		if(count ==  frequency_count_map[obj])
 			break;
 	}
+	*/
+
+	long int now = t;
+	for(t_frequency::reverse_iterator riter = t_stamp_[obj].rbegin(); riter != t_stamp_[obj].rend(); ){
+		WTF += (double)(riter->second)/(before-now);
+		before = (riter->first);
+		riter++;
+		if(riter == t_stamp_[obj].rend())
+			break;
+		now = (riter->first);
+	}
+	
+
 	long double h_val = clock + (WTF/obj.size);
-	//std::cerr<<"new priority is "<<h_val<<std::endl;
 	return h_val;
 }
 
@@ -196,14 +213,26 @@ bool WGDSF::lookup(SimpleRequest* req){
 	//std::cerr<<"lookup in WGDSF"<<std::endl;
 	CacheObject obj(req);
 	long long t = this->time;
-	auto iter = t_stamp[t].find(obj);
+
+	//auto iter = t_stamp[t].find(obj);
+	auto iter = t_stamp_[obj].find(t);
+
 	auto it = object_iter_map.find(obj);
 	if(it != object_iter_map.end()){
 		frequency_count_map[obj]++;
+		/*
 		if(iter != t_stamp[t].end())
 			t_stamp[t][obj]++;
 		else
 			t_stamp[t][obj]=1;
+		*/
+		
+		if(iter != t_stamp_[obj].end())
+			t_stamp_[obj][t]++;
+		else
+			t_stamp_[obj][t] = 1;
+
+
 		LOG("h", 0, obj.id, obj.size);
 		CacheObject cacheObj = it->first;
 		priority_object_map_iter iter_ = it->second;
@@ -212,7 +241,7 @@ bool WGDSF::lookup(SimpleRequest* req){
 		it->second = priority_object_map.emplace(new_h, cacheObj);
 		return true;
 	}
-	else{	// ¾øÀ¸¸é admit¿¡¼­ frequency count =1, timestamp¿¡ Áö±Ý t¿¡ frequency = 1 ÇÒ´ç
+	else{	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ admitï¿½ï¿½ï¿½ï¿½ frequency count =1, timestampï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ tï¿½ï¿½ frequency = 1 ï¿½Ò´ï¿½
 		//for(int i = 0 ; i<t; i++)
 		//	t_stamp[i].erase(obj);
 	
@@ -235,6 +264,20 @@ void FilterWGDSF::setPar(std::string parName, std::string parValue){
     } else {
         std::cerr << "unrecognized parameter: " << parName << std::endl;
     }
+}
+
+bool FilterWGDSF::lookup(SimpleRequest* req){
+    CacheObject obj(req);
+    _filter[obj]++;
+    return WGDSF::lookup(req);
+}
+
+void FilterWGDSF::admit(SimpleRequest* req){
+    CacheObject obj(req);
+    if (_filter[obj] <= _nParam) {
+        return;
+    }
+    WGDSF::admit(req);
 }
 
 bool FilterWGDSF::lookup(SimpleRequest* req){
