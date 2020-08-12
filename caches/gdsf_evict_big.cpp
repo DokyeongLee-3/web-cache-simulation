@@ -1,6 +1,5 @@
-#include "WGDSF_modify.h"
 #include <unordered_map>
-
+#include "gdsf_evict_big.h"
 
 
 
@@ -154,7 +153,10 @@ void WGDSF::admit(SimpleRequest* req){
 		evict();
 	}
 	long long t = this->time;
-	t_stamp[t][new_obj] = 1;
+
+	//t_stamp[t][new_obj] = 1;
+	t_stamp_[new_obj][t] = 1;
+
 	std::pair<CacheObject, long int> to_insert_frequency_count_map(new_obj, 1);
 	frequency_count_map.insert(to_insert_frequency_count_map);
 	long double new_hval = new_H(req);
@@ -176,6 +178,9 @@ long double WGDSF::new_H(SimpleRequest* req){
 	long double WTF = 0;
 	long long t = this->time;
 	long int before = t+1;
+
+	
+	/*	
 	long int count = 0;
 	for(long int i = t; i >= 0; i--){
 		if((count < frequency_count_map[obj]) && (t_stamp[i][obj] != 0)){
@@ -187,8 +192,20 @@ long double WGDSF::new_H(SimpleRequest* req){
 		if(count ==  frequency_count_map[obj])
 			break;
 	}
+	*/
+
+	long int now = t;
+	for(t_frequency::reverse_iterator riter = t_stamp_[obj].rbegin(); riter != t_stamp_[obj].rend(); ){
+		WTF += (double)(riter->second)/(before-now);
+		before = (riter->first);
+		riter++;
+		if(riter == t_stamp_[obj].rend())
+			break;
+		now = (riter->first);
+	}
+	
+
 	long double h_val = clock + (WTF/obj.size);
-	//std::cerr<<"new priority is "<<h_val<<std::endl;
 	return h_val;
 }
 
@@ -196,14 +213,26 @@ bool WGDSF::lookup(SimpleRequest* req){
 	//std::cerr<<"lookup in WGDSF"<<std::endl;
 	CacheObject obj(req);
 	long long t = this->time;
-	auto iter = t_stamp[t].find(obj);
+
+	//auto iter = t_stamp[t].find(obj);
+	auto iter = t_stamp_[obj].find(t);
+
 	auto it = object_iter_map.find(obj);
 	if(it != object_iter_map.end()){
 		frequency_count_map[obj]++;
+		/*
 		if(iter != t_stamp[t].end())
 			t_stamp[t][obj]++;
 		else
 			t_stamp[t][obj]=1;
+		*/
+		
+		if(iter != t_stamp_[obj].end())
+			t_stamp_[obj][t]++;
+		else
+			t_stamp_[obj][t] = 1;
+
+
 		LOG("h", 0, obj.id, obj.size);
 		CacheObject cacheObj = it->first;
 		priority_object_map_iter iter_ = it->second;

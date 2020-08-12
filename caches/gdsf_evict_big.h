@@ -13,6 +13,10 @@ typedef std::multimap<long double, CacheObject> priority_object_map_type;	//mult
 typedef priority_object_map_type::iterator priority_object_map_iter;
 typedef std::unordered_map<CacheObject, priority_object_map_iter> object_iter_type;
 typedef std::unordered_map<CacheObject, long int> frequency_count_type;
+
+typedef std::map<long int, long int> t_frequency;
+typedef std::unordered_map<CacheObject, t_frequency> _timestamp;
+
 typedef std::unordered_map<long int, frequency_count_type> timestamp;//timestamp[0]은 t1-t0사이의 object의frequency
 
 
@@ -137,7 +141,8 @@ public:
 	virtual bool lookup(SimpleRequest* req);
 	virtual void admit(SimpleRequest* req);
 	//virtual void evict();
-	timestamp t_stamp;
+	//timestamp t_stamp;
+	_timestamp t_stamp_;
 
 	
 };
