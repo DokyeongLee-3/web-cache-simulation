@@ -9,11 +9,15 @@
 #include "cache.h"
 #include "cache_object.h"
 
-typedef std::multimap<long double, CacheObject> priority_object_map_type;	//multimapÀº ±×³É map°ú ´Ù¸£°Ô key°ªÀÌ Áßº¹°¡´É
+typedef std::multimap<long double, CacheObject> priority_object_map_type;	//multimapï¿½ï¿½ ï¿½×³ï¿½ mapï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½ï¿½ keyï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ï¿½ï¿½ï¿½ï¿½
 typedef priority_object_map_type::iterator priority_object_map_iter;
 typedef std::unordered_map<CacheObject, priority_object_map_iter> object_iter_type;
 typedef std::unordered_map<CacheObject, long int> frequency_count_type;
-typedef std::unordered_map<long int, frequency_count_type> timestamp;//timestamp[0]Àº t1-t0»çÀÌÀÇ objectÀÇfrequency
+
+typedef std::map<long int, long int> t_frequency;
+typedef std::unordered_map<CacheObject, t_frequency> _timestamp;
+
+typedef std::unordered_map<long int, frequency_count_type> timestamp;//timestamp[0]ì€ t1-t0ì‚¬ì´ì˜ objectì˜frequency
 
 
 
@@ -24,7 +28,7 @@ protected:
 	long double clock;
 	priority_object_map_type priority_object_map; // <object, key> map
 	object_iter_type object_iter_map; // <object, priority_object_map_iter> map
-	long double new_H(SimpleRequest* req); // GD, GDS, GDSF ¸ğµÎ ´Ş¶ó¾ß ÇÏ´Â function
+	long double new_H(SimpleRequest* req); // GD, GDS, GDSF ï¿½ï¿½ï¿½ ï¿½Ş¶ï¿½ï¿½ ï¿½Ï´ï¿½ function
 
 public:
 
@@ -137,7 +141,8 @@ public:
 	virtual bool lookup(SimpleRequest* req);
 	virtual void admit(SimpleRequest* req);
 	//virtual void evict();
-	timestamp t_stamp;
+	//timestamp t_stamp;
+	_timestamp t_stamp_;
 
 	
 };
