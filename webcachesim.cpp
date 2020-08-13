@@ -13,8 +13,8 @@ int main (int argc, char* argv[])
 {
 
   // output help if insufficient params
-  if(argc < 4) {
-    cerr << "webcachesim traceFile cacheType cacheSizeBytes [cacheParams]" << endl;
+  if(argc < 5) {
+    cerr << "webcachesim traceFile cacheType cacheSizeBytes requestTotal [cacheParams]" << endl;
     return 1;
   }
 
@@ -35,7 +35,7 @@ int main (int argc, char* argv[])
   regex opexp ("(.*)=(.*)");
   cmatch opmatch;
   string paramSummary;
-  for(int i=4; i<argc; i++) {
+  for(int i=5; i<argc; i++) {
     regex_match (argv[i],opmatch,opexp);
     if(opmatch.size()!=3) {
       cerr << "each cacheParam needs to be in form name=value" << endl;
@@ -51,23 +51,29 @@ int main (int argc, char* argv[])
   long long req_size = 0;
   long long hit_size = 0;
 
+  long long request_count = std::stoull(argv[4]);
+  long long warm_up = request_count*0.2; 
+
   cerr << "running..." << endl;
 
   infile.open(path);
   SimpleRequest* req = new SimpleRequest(0, 0);
   while (infile >> t >> id >> size)
     {
+	
+	webcache->time = t;// Added by dklee
+	req_size += req->_size; 
+		
 
-	    webcache->time = t;// Added by dklee
-
-        reqs++;
+        	reqs++;
         
         req->reinit(id,size);
 	CacheObject obj(req);
-	req_size += req->_size;
         if(webcache->lookup(req)) {
-            hits++;
-	    hit_size += obj.size;
+	    if(req_size > warm_up){
+            	hits++;
+	    	hit_size += obj.size;
+	    }
         } else {
             webcache->admit(req);
         }
