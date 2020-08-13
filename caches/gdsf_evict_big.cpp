@@ -9,14 +9,14 @@ bool GD::lookup(SimpleRequest* req){
 	auto iter_ = object_iter_map.find(obj);
 	if(iter_ != object_iter_map.end()){	//hit
 		LOG("h", 0, obj.id, obj.size); 
-			// 원래 hit일때 GD에서는 원래 H value로 restore하는데 그렇게 하지 않고 hit된 file이나 새로 caching된 file들의 priority에 monotonic하게 증가하는 clock을 priority에 더해준다면 recency를 부여할 수 있음 
+			// ���� hit�϶� GD������ ���� H value�� restore�ϴµ� �׷��� ���� �ʰ� hit�� file�̳� ���� caching�� file���� priority�� monotonic�ϰ� �����ϴ� clock�� priority�� �����شٸ� recency�� �ο��� �� ���� 
 
 		long double new_h_val = new_H(req);
 		auto iter2 = iter_->second;
 		priority_object_map.erase(iter2);
 		std::pair<long double, CacheObject> to_insert(new_h_val, obj);
 		auto iter_ = priority_object_map.emplace(to_insert);
-		assert(object_iter_map.find(obj) != object_iter_map.end()); // object_iter_map에 obj가 당연히 있어야 한다(for debugging)
+		assert(object_iter_map.find(obj) != object_iter_map.end()); // object_iter_map�� obj�� �翬�� �־�� �Ѵ�(for debugging)
 		object_iter_map[obj] = iter_;
 		return true;	
 	}
@@ -60,7 +60,7 @@ void GD::evict(){
 		}
 
 		update_clock(min_priority);
-		CacheObject delobj = min_priority_iter->second; //지금 지우는 file의 priority로 clock을 update -> clock은 monotonic하게 increase, 나중에 cache에admit되는file일수록 높은 clock을 가짐 -> recency
+		CacheObject delobj = min_priority_iter->second; //���� ����� file�� priority�� clock�� update -> clock�� monotonic�ϰ� increase, ���߿� cache��admit�Ǵ�file�ϼ��� ���� clock�� ���� -> recency
 		LOG("e", min_priority_iter->first, delobj.id, delobj.size);
 		_currentSize = _currentSize - delobj.size;
 		priority_object_map.erase(min_priority_iter);
@@ -83,7 +83,7 @@ void GD::update_clock(long double new_clock){
 
 long double GD::new_H(SimpleRequest* req){
 	//std::cerr<<"new H in GD"<<std::endl;
-	return clock + 1.0; // GD는 H = L + frequency*(cost/size)에서 frequency, size를 고려하지 않고, 나는 cost를 1로 두는 방법 고수해서 H = L(clock) + 1이 되어서 이런 식이 나옴->cost는 file별로 당연히 다를텐데 이걸  file별로 정확히 수치화할 수 있으면 더 나은 performance를 보일 것
+	return clock + 1.0; // GD�� H = L + frequency*(cost/size)���� frequency, size�� �������� �ʰ�, ���� cost�� 1�� �δ� ��� �����ؼ� H = L(clock) + 1�� �Ǿ �̷� ���� ����->cost�� file���� �翬�� �ٸ��ٵ� �̰�  file���� ��Ȯ�� ��ġȭ�� �� ������ �� ���� performance�� ���� ��
 }
 
 
@@ -241,7 +241,7 @@ bool WGDSF::lookup(SimpleRequest* req){
 		it->second = priority_object_map.emplace(new_h, cacheObj);
 		return true;
 	}
-	else{	// 없으면 admit에서 frequency count =1, timestamp에 지금 t에 frequency = 1 할당
+	else{	// ������ admit���� frequency count =1, timestamp�� ���� t�� frequency = 1 �Ҵ�
 		//for(int i = 0 ; i<t; i++)
 		//	t_stamp[i].erase(obj);
 	
@@ -279,4 +279,3 @@ void FilterWGDSF::admit(SimpleRequest* req){
     }
     WGDSF::admit(req);
 }
-

@@ -9,7 +9,7 @@
 #include "cache.h"
 #include "cache_object.h"
 
-typedef std::multimap<long double, CacheObject> priority_object_map_type;	//multimap은 그냥 map과 다르게 key값이 중복가능
+typedef std::multimap<long double, CacheObject> priority_object_map_type;	//multimap�� �׳� map�� �ٸ��� key���� �ߺ�����
 typedef priority_object_map_type::iterator priority_object_map_iter;
 typedef std::unordered_map<CacheObject, priority_object_map_iter> object_iter_type;
 typedef std::unordered_map<CacheObject, long int> frequency_count_type;
@@ -28,7 +28,7 @@ protected:
 	long double clock;
 	priority_object_map_type priority_object_map; // <object, key> map
 	object_iter_type object_iter_map; // <object, priority_object_map_iter> map
-	long double new_H(SimpleRequest* req); // GD, GDS, GDSF 모두 달라야 하는 function
+	long double new_H(SimpleRequest* req); // GD, GDS, GDSF ��� �޶�� �ϴ� function
 
 public:
 
@@ -170,6 +170,5 @@ public:
 };
 
 static Factory<FilterWGDSF> factoryFilter("FilterWGDSF");
-
 
 #endif

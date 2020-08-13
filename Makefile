@@ -10,7 +10,7 @@ CXX = g++ #clang++ #OSX
 CXXFLAGS += -std=c++11 #-stdlib=libc++ #non-linux
 CXXFLAGS += -MMD -MP # dependency tracking flags
 CXXFLAGS += -I./
-CXXFLAGS += -Wall -Werror 
+CXXFLAGS += -Wall -Werror  
 LDFLAGS += $(LIBS)
 all: CXXFLAGS += -O2 # release flags
 all:		$(TARGET)
