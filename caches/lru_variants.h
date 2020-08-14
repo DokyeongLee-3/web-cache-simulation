@@ -123,12 +123,12 @@ struct cmp{
     return a.first < b.first;
   }
 };
-    long int _mParam;
+    long long _mParam;
     std::unordered_map<CacheObject, std::pair<long int, bool>> _RRPVstatus;
     std::priority_queue<RRPVobj, std::deque<RRPVobj>, cmp> _RRPVpq;
-  long  int RRPV;
-   long int hit_RRPV;
-  long  int old_mParam;
+  long long  RRPV;
+   long long hit_RRPV;
+  long long old_mParam;
 
    
 public:
