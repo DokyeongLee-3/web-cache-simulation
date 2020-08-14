@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
   regex opexp("(.*)=(.*)");
   cmatch opmatch;
   string paramSummary;
-  for (int i = 5; i < argc; i++)
+  for (int i = 6; i < argc; i++)
   {
     regex_match(argv[i], opmatch, opexp);
     if (opmatch.size() != 3)
@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
 
   long long request_count = std::stoull(argv[4]);
   long long warm_up = request_count*0.2; 
+  std::cerr<<"warm up is "<<warm_up<<std::endl;
   long long count = 0;
   cerr << "running..." << endl;
   
@@ -80,30 +81,29 @@ int main(int argc, char *argv[])
 	count++;
 
 	if(count > warm_up)
-		reqs++;
+	  reqs++;
 	
 	webcache->time = t;// Added by dklee
 
 	if(count > warm_up)
-		req_size += req->_size; 
+	  req_size += req->_size; 
 		
-
-	      webcache->time = t;// Added by dklee
+	webcache->time = t;// Added by dklee
 
         
         req->reinit(id,size);
 	      CacheObject obj(req);
         if(webcache->lookup(req)) {
+	    hit = true;
 	    if(count > warm_up){
-                hit = true;
             	hits++;
             	hit_size += obj.size;
             	time_per_req = (obj.size/12500.0)*2;
 	    }
         } else {
 	    webcache->admit(req);
+	    hit = false;
 	    if(count > warm_up){
-            	hit = false;
             	backend_traffic+=req->_size;
             	time_per_req = (obj.size/12500.0)*2;
             	time_per_req += (obj.size/3000.0)*2;
@@ -119,6 +119,14 @@ int main(int argc, char *argv[])
             outfile<<obj.id<<","<< obj.size<< ",Miss,"<< time_per_req <<"\n";
             total_transfer_time+=time_per_req;
           }
+	}
+	else{
+	  if(hit){
+  	     outfile<<obj.id<<","<< obj.size<< ",Hit,"<<0<<"\n";
+	  }
+	  else{
+	    outfile<<obj.id<<","<< obj.size<< ",Miss,"<<0<<"\n";
+ 	  }
 	}
 
         
